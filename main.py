@@ -31,7 +31,7 @@ async def websocket_endpoint(websocket: WebSocket):
         response = {
             "name1": name1,
             "name2": name2,
-            "compatibility": f"{compatibility}%",
+            "compatibility": f"{compatibility}",
             "message": message
         }
 
