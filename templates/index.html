@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valentine Love Test ❤️</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0"></script>
+
+    <style>
+        @keyframes floating {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+        .floating-heart {
+            animation: floating 2s ease-in-out infinite;
+        }
+        .falling-hearts {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            font-size: 24px;
+            opacity: 0.8;
+            animation: fall 4s linear infinite;
+        }
+        @keyframes fall {
+            from { transform: translateY(-10vh) translateX(0); opacity: 1; }
+            to { transform: translateY(100vh) translateX(20px); opacity: 0; }
+        }
+        .dark-mode {
+            background: #1a202c;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-pink-400 to-red-500 min-h-screen flex items-center justify-center text-white transition-all duration-300">
+
+    <button onclick="toggleDarkMode()" class="absolute top-4 right-4 bg-gray-800 px-3 py-2 rounded-md text-sm font-semibold">
+        🌙 Toggle Dark Mode
+    </button>
+
+    <div class="bg-white text-center text-gray-800 p-6 rounded-lg shadow-lg max-w-sm transition-all duration-300">
+        <h2 class="text-3xl font-bold mb-4">💘 Love Compatibility Test 💘</h2>
+
+        <div class="flex flex-col gap-3">
+            <input type="text" id="name1" placeholder="Your Name"
+                class="p-2 border border-pink-500 rounded-md text-center focus:outline-none focus:ring-2 focus:ring-pink-500">
+            
+            <input type="text" id="name2" placeholder="Crush's Name"
+                class="p-2 border border-red-500 rounded-md text-center focus:outline-none focus:ring-2 focus:ring-red-500">
+            
+            <button onclick="startLoveTest()"
+                class="bg-gradient-to-r from-pink-500 to-red-500 text-white px-4 py-2 rounded-md font-bold hover:scale-105 transition transform duration-300">
+                💖 Check Love
+            </button>
+        </div>
+
+        <div id="result" class="mt-6 text-xl font-semibold"></div>
+
+        <button id="share-btn" onclick="shareLove()"
+        class="hidden mt-4 bg-purple-600 px-3 py-2 text-white rounded-md">
+        🔗 Share
+    </button>
+    
+    </div>
+
+    <script>
+        let ws = new WebSocket("ws://localhost:8000/ws");
+
+        function startLoveTest() {
+            let name1 = document.getElementById("name1").value;
+            let name2 = document.getElementById("name2").value;
+
+            if (name1 && name2) {
+                ws.send(`${name1},${name2}`);
+            }
+        }
+
+        ws.onmessage = function(event) {
+            let data = JSON.parse(event.data);
+            let resultBox = document.getElementById("result");
+
+            resultBox.innerHTML = `
+                <div class="text-2xl font-bold">${data.name1} ❤️ ${data.name2}</div>
+                <div class="mt-2 text-pink-600 text-4xl floating-heart">${data.compatibility}%</div>
+                <p class="mt-2">${data.message}</p>
+            `;
+
+            if (data.compatibility > 75) {
+                launchConfetti();
+            }
+
+            document.getElementById("share-btn").classList.remove("hidden");
+        };
+
+        function launchConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+
+        function shareLove() {
+    let name1 = document.getElementById("name1").value;
+    let name2 = document.getElementById("name2").value;
+    let text = `${name1} ❤️ ${name2} scored high in the Love Test! Try it now: http://localhost:8000/`;
+
+    // WhatsApp Share Link
+    let whatsappURL = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    
+    // Twitter Share Link
+    let twitterURL = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+
+    // Open Share Options
+    let shareOptions = `
+        <div class="flex justify-center gap-3 mt-4">
+            <a href="${whatsappURL}" target="_blank" class="bg-green-500 px-4 py-2 rounded-md text-white font-bold">📲 WhatsApp</a>
+            <a href="${twitterURL}" target="_blank" class="bg-blue-500 px-4 py-2 rounded-md text-white font-bold">🐦 Twitter</a>
+        </div>
+    `;
+
+    document.getElementById("result").insertAdjacentHTML("beforeend", shareOptions);
+}
+
+
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode");
+        }
+
+        function createHearts() {
+            const heart = document.createElement("div");
+            heart.innerHTML = "❤️";
+            heart.classList.add("falling-hearts");
+            heart.style.left = Math.random() * 100 + "vw";
+            heart.style.animationDuration = Math.random() * 2 + 3 + "s";
+            document.body.appendChild(heart);
+
+            setTimeout(() => heart.remove(), 4000);
+        }
+        setInterval(createHearts, 500);
+    </script>
+
+</body>
+</html>
